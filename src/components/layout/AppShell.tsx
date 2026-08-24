@@ -208,7 +208,7 @@ export function AppShell({ user, initialTree, children }: { user: SessionUser; i
             </Tooltip>
           </TooltipProvider>
 
-          <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="min-w-0 flex-1 overflow-y-auto">
             <Sidebar {...sidebarProps} />
           </div>
         </aside>
