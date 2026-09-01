@@ -82,4 +82,16 @@ export const Api = {
     api<{ id: string; role: "ADMIN" | "EDITOR" | "VIEWER" }>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) }),
   listAudit: (page = 1, pageSize = 15) =>
     api<import("@/types").AuditLogPage>(`/api/audit?page=${page}&pageSize=${pageSize}`),
+
+  // import
+  analyzeImport: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return api<{ jobId: string; filename: string; strategy: string; parentFolderTitle: string; items: Array<{ matchKey: string; title: string; slugHint: string; orderIndex: number; excluded: boolean; existingItemId: string | null; conflict: boolean }>; referenceItems: Array<{ matchKey: string; title: string; slugHint: string; orderIndex: number; excluded: boolean; existingItemId: string | null; conflict: boolean }>; warnings: string[] }>("/api/import/analyze", { method: "POST", body: form });
+  },
+  commitImport: (body: { jobId: string; items: Array<{ matchKey: string; title: string; slugHint: string; orderIndex: number; excluded: boolean; existingItemId: string | null; conflict: boolean }>; referenceItems?: Array<{ matchKey: string; title: string; slugHint: string; orderIndex: number; excluded: boolean; existingItemId: string | null; conflict: boolean }>; parentNavigationId?: string | null }) =>
+    api<{ jobId: string; folderId: string; created: number; skipped: number; warnings: string[] }>("/api/import/commit", { method: "POST", body: JSON.stringify(body) }),
+  getImportJob: (jobId: string) =>
+    api<{ id: string; filename: string; status: string; strategy: string; created: string; committedAt: string | null; itemCount: number }>(`/api/import/${jobId}`),
+  listImports: () => api<Array<{ id: string; filename: string; status: string; strategy: string; created: string; committedAt: string | null; itemCount: number }>>("/api/import"),
 };

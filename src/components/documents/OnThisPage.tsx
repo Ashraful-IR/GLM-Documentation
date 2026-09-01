@@ -15,7 +15,7 @@ function findScrollContainer(el: HTMLElement | null): HTMLElement | Window {
   return window;
 }
 
-export function OnThisPage({ items, className }: { items: HeadingItem[]; className?: string }) {
+export function OnThisPage({ items, className, style }: { items: HeadingItem[]; className?: string; style?: React.CSSProperties }) {
   const asideRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLElement | Window | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function OnThisPage({ items, className }: { items: HeadingItem[]; classNa
   }
 
   return (
-    <aside ref={asideRef} className={cn("pt-6", className)}>
+    <aside ref={asideRef} className={className} style={style}>
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">On This Page</p>
       <nav className="mt-3" aria-label="On this page">
         <ul className="space-y-1 border-l border-border">

@@ -413,7 +413,7 @@
   .reader-body {
     @apply text-foreground;
     font-size: 15px;
-    line-height: 1.7;
+    line-height: 1.65;
     word-wrap: break-word;
   }
 
@@ -435,25 +435,26 @@
   .reader-body h5,
   .reader-body h6 {
     @apply font-semibold text-foreground;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
     /* Keep headings clear of the container's top edge when scrolled to via the TOC */
     scroll-margin-top: 1.25rem;
   }
   .reader-body h1 {
-    font-size: 1.6rem;
-    margin: 1.6em 0 0.7em;
+    font-size: 1.5rem;
+    margin: 1.4em 0 0.6em;
   }
   .reader-body h2 {
-    font-size: 1.3rem;
-    margin: 1.5em 0 0.6em;
-  }
-  .reader-body h3 {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     margin: 1.3em 0 0.5em;
   }
-  .reader-body h4 {
-    font-size: 1rem;
+  .reader-body h3 {
+    font-size: 1.1rem;
     margin: 1.2em 0 0.4em;
+  }
+  .reader-body h4 {
+    font-size: 0.95rem;
+    margin: 1.1em 0 0.4em;
   }
 
   .reader-body ul {
@@ -492,9 +493,7 @@
   }
 
   .reader-body code {
-    @apply rounded bg-muted text-foreground;
-    padding: 0.1em 0.35em;
-    font-size: 0.85em;
+    @apply rounded bg-muted px-1.5 py-0.5 text-sm font-medium text-foreground;
     font-family: var(--font-geist-mono), ui-monospace, monospace;
   }
   .reader-body pre {
@@ -508,7 +507,7 @@
     }
     font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.55;
   }
   .reader-body pre code {
     background: none;

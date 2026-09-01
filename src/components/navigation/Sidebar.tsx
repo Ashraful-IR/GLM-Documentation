@@ -263,8 +263,8 @@ export function Sidebar({ tree, loading, role, mutations }: SidebarProps) {
   return (
     <div className="flex h-full flex-col">
       {/* pr-10 keeps the + button clear of the collapse toggle on the sidebar's right edge */}
-      <div className="flex items-center justify-between pb-1 pl-3 pr-10 pt-0.5">
-        <h2 className="px-1 text-sm font-semibold uppercase tracking-wider">CONTENT</h2>
+      <div className="flex items-center justify-between pb-1 pl-3 pr-10 pt-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">CONTENT</h2>
         {canEdit && (
           <Button
             variant="ghost"
@@ -278,7 +278,7 @@ export function Sidebar({ tree, loading, role, mutations }: SidebarProps) {
         )}
       </div>
       <ScrollArea className="flex-1">
-        <div className="px-5 pb-4 pt-10">
+        <div className="px-4 pb-4 pt-8">
           {loading && tree.length === 0 ? (
             <div className="space-y-1.5 px-1 pt-2">
               {[0, 1, 2, 3].map((i) => (
@@ -421,15 +421,12 @@ function SortableRow({
             onNavigate();
           }
         }}
-        className={`group/node relative flex cursor-pointer select-none items-center gap-1 rounded-md px-1.5 py-1 mt-4 text-sm ${
+        className={`group/node relative flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 mt-1 text-[13px] ${
           isActive ? "opacity-40" : ""
         } ${isOver ? "ring-1 ring-inset ring-ring" : ""} ${
-          isCurrentPath ? "bg-accent font-medium text-accent-foreground" : "text-foreground/80 hover:bg-accent/60"
+          isCurrentPath ? "border-l-2 border-primary bg-muted/60 font-medium" : "text-foreground/70 hover:bg-muted/40"
         } ${item.effectivelyHidden ? "italic opacity-50" : ""}`}
       >
-        {isCurrentPath && (
-          <span className="absolute left-0 top-1/2 h-3.5 w-[3px] -translate-y-1/2 rounded-r-full bg-gp-green" />
-        )}
         <Icon className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate">{item.title}</span>
         {item.hasChildren && (

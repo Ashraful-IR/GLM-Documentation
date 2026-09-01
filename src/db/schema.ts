@@ -251,3 +251,50 @@ export type NewDocument = typeof documents.$inferInsert;
 export type DocumentVersionRow = typeof documentVersions.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
 export type AuditLogRow = typeof auditLogs.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// import_jobs / import_job_items — two-phase markdown import (FR-1..FR-10)
+// ---------------------------------------------------------------------------
+
+export const importJobs = documentation.table(
+  "import_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourceFilename: text("source_filename").notNull(),
+    status: text("status").notNull().$type<"PARSED" | "COMMITTED" | "FAILED">(),
+    strategyUsed: text("strategy_used").notNull(),
+    rawMarkdown: text("raw_markdown").notNull(),
+    parentNavigationId: uuid("parent_navigation_id").references(() => navigation.id),
+    warnings: jsonb("warnings").$type<string[]>().default([]),
+    createdBy: uuid("created_by").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+    committedAt: timestamp("committed_at", { withTimezone: true, mode: "date" }),
+  },
+  (table) => [
+    index("import_jobs_created_by_idx").on(table.createdBy),
+  ],
+);
+
+export const importJobItems = documentation.table(
+  "import_job_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    importJobId: uuid("import_job_id")
+      .notNull()
+      .references(() => importJobs.id, { onDelete: "cascade" }),
+    documentId: uuid("document_id").references(() => documents.id),
+    navigationId: uuid("navigation_id").references(() => navigation.id),
+    sectionTitle: text("section_title").notNull(),
+    sectionHash: text("section_hash").notNull(),
+    orderIndex: integer("order_index").notNull(),
+  },
+  (table) => [
+    index("import_job_items_job_idx").on(table.importJobId),
+    index("import_job_items_doc_idx").on(table.documentId),
+  ],
+);
+
+export type ImportJobRow = typeof importJobs.$inferSelect;
+export type ImportJobItemRow = typeof importJobItems.$inferSelect;
