@@ -50,7 +50,7 @@ export function NodeActions({ node, slugPath, canEdit, onAction }: NodeActionsPr
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 opacity-40 transition-opacity hover:!opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 sm:size-6"
+          className="size-8 opacity-0 transition-opacity group-hover/node:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 sm:size-6"
           aria-label={`Actions for ${node.title}`}
           // Stop the click from bubbling to the sidebar row's navigate/toggle handler.
           onPointerDown={(e) => e.stopPropagation()}
