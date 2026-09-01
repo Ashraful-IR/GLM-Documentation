@@ -147,7 +147,7 @@ export function DocumentEditor({
 
   const editor = useEditor({
     extensions: buildEditorExtensions("Start typing… use “/” for commands"),
-    content: initialContent,
+    content: initialContent ?? { type: "doc", content: [] },
     editable: canEdit,
     editorProps: {
       attributes: { class: "outline-none" },
