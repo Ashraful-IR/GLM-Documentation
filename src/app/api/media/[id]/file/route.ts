@@ -19,7 +19,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     const record = await getMediaById(id);
 
     const uploadDir = resolve(/* turbopackIgnore: true */ process.cwd(), process.env.UPLOAD_DIR ?? "./uploads");
-    const filePath = join(uploadDir, record.path);
+    const filePath = join(/* turbopackIgnore: true */ uploadDir, record.path);
     // Path traversal guard: the stored path is always category/filename.
     if (!filePath.startsWith(uploadDir)) {
       return NextResponse.json({ success: false, error: { code: "INVALID_PATH", message: "Invalid path" } }, { status: 400 });

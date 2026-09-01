@@ -31,4 +31,10 @@ export function getDb() {
   return globalForDb.__docuDb;
 }
 
-export const db = getDb().db;
+export const db = new Proxy({} as ReturnType<typeof createClient>["db"], {
+  get(_target, prop, receiver) {
+    const actualDb = getDb().db;
+    const value = Reflect.get(actualDb, prop, receiver);
+    return typeof value === "function" ? value.bind(actualDb) : value;
+  },
+});

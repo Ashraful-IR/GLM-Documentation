@@ -18,7 +18,7 @@ const lowlight = createLowlight(common);
  * One extension set for both the editor and the read-only viewer — this is
  * what keeps edit/view rendering identical (§6, §16).
  */
-export function buildEditorExtensions(placeholder?: string) {
+export function buildEditorExtensions(placeholder?: string): any[] {
   return [
     StarterKit.configure({
       codeBlock: false, // replaced by CodeBlockLowlight below

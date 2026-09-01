@@ -9,7 +9,7 @@ export type CalloutVariant = "info" | "warning" | "success" | "danger";
  * Callout block — a typed node inside the stored Tiptap JSON (§14). It is a
  * code-level registry entry, not a database entity.
  */
-export const CalloutExtension = Node.create({
+export const CalloutExtension: any = Node.create({
   name: "callout",
   group: "block",
   content: "block+",
@@ -49,7 +49,7 @@ export const CalloutExtension = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(CalloutView);
+    return ReactNodeViewRenderer(CalloutView) as any;
   },
 });
 

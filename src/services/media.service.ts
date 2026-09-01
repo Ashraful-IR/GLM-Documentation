@@ -24,7 +24,7 @@ const ALLOWED_MIME: Record<string, string> = {
 };
 
 function uploadDir(): string {
-  return resolve(process.cwd(), process.env.UPLOAD_DIR ?? "./uploads");
+  return resolve(/* turbopackIgnore: true */ process.cwd(), process.env.UPLOAD_DIR ?? "./uploads");
 }
 
 /** Validates + persists an uploaded file; returns the media record. */
@@ -46,14 +46,14 @@ export async function saveUpload(
   const storedName = `${randomUUID()}-${originalName}`;
   const relativePath = `${category}/${storedName}`;
 
-  const dir = join(uploadDir(), category);
+  const dir = join(/* turbopackIgnore: true */ uploadDir(), category);
   await mkdir(dir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
   // Guard against path traversal on the stored name.
   if (relativePath.includes("..") || relativePath.includes("/") === false) {
     throw new ApiError("INVALID_PATH", "Invalid file path", 400);
   }
-  await writeFile(join(dir, storedName), buffer);
+  await writeFile(join(/* turbopackIgnore: true */ dir, storedName), buffer);
 
   const [row] = await db
     .insert(media)

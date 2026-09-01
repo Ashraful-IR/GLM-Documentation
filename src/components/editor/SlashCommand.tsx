@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/react";
 import {
   AlertTriangle,
   AlignLeft,
@@ -28,34 +28,34 @@ interface SlashItem {
   hint?: string;
   keywords: string;
   icon: React.ReactNode;
-  action: (editor: Editor) => void;
+  action: (editor: any) => void;
 }
 
 const ITEMS: SlashItem[] = [
-  { title: "Heading 1", keywords: "h1 heading title", icon: <Heading1 className="size-4" />, action: (e) => e.chain().focus().toggleHeading({ level: 1 }).run() },
-  { title: "Heading 2", keywords: "h2 heading", icon: <Heading2 className="size-4" />, action: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
-  { title: "Bullet list", keywords: "ul list bullets", icon: <List className="size-4" />, action: (e) => e.chain().focus().toggleBulletList().run() },
-  { title: "Numbered list", keywords: "ol ordered list", icon: <ListOrdered className="size-4" />, action: (e) => e.chain().focus().toggleOrderedList().run() },
-  { title: "Task list", keywords: "todo checkbox", icon: <CheckSquare className="size-4" />, action: (e) => e.chain().focus().toggleTaskList().run() },
-  { title: "Quote", keywords: "blockquote quote", icon: <MessageSquareQuote className="size-4" />, action: (e) => e.chain().focus().toggleBlockquote().run() },
-  { title: "Code block", keywords: "code pre", icon: <FileCode2 className="size-4" />, action: (e) => e.chain().focus().toggleCodeBlock().run() },
-  { title: "Table", keywords: "table grid", icon: <Table2 className="size-4" />, action: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
-  { title: "Divider", keywords: "hr rule divider", icon: <Minus className="size-4" />, action: (e) => e.chain().focus().setHorizontalRule().run() },
-  { title: "Callout — info", keywords: "callout note info", icon: <Info className="size-4" />, action: (e) => e.chain().focus().setCallout("info").run() },
-  { title: "Callout — warning", keywords: "callout warning", icon: <AlertTriangle className="size-4" />, action: (e) => e.chain().focus().setCallout("warning").run() },
-  { title: "Bold", keywords: "bold", icon: <Bold className="size-4" />, action: (e) => e.chain().focus().toggleBold().run() },
-  { title: "Italic", keywords: "italic", icon: <Italic className="size-4" />, action: (e) => e.chain().focus().toggleItalic().run() },
-  { title: "Underline", keywords: "underline", icon: <UnderlineIcon className="size-4" />, action: (e) => e.chain().focus().toggleUnderline().run() },
-  { title: "Inline code", keywords: "code inline", icon: <Code2 className="size-4" />, action: (e) => e.chain().focus().toggleCode().run() },
+  { title: "Heading 1", keywords: "h1 heading title", icon: <Heading1 className="size-4" />, action: (e) => (e.chain().focus() as any).toggleHeading({ level: 1 }).run() },
+  { title: "Heading 2", keywords: "h2 heading", icon: <Heading2 className="size-4" />, action: (e) => (e.chain().focus() as any).toggleHeading({ level: 2 }).run() },
+  { title: "Bullet list", keywords: "ul list bullets", icon: <List className="size-4" />, action: (e) => (e.chain().focus() as any).toggleBulletList().run() },
+  { title: "Numbered list", keywords: "ol ordered list", icon: <ListOrdered className="size-4" />, action: (e) => (e.chain().focus() as any).toggleOrderedList().run() },
+  { title: "Task list", keywords: "todo checkbox", icon: <CheckSquare className="size-4" />, action: (e) => (e.chain().focus() as any).toggleTaskList().run() },
+  { title: "Quote", keywords: "blockquote quote", icon: <MessageSquareQuote className="size-4" />, action: (e) => (e.chain().focus() as any).toggleBlockquote().run() },
+  { title: "Code block", keywords: "code pre", icon: <FileCode2 className="size-4" />, action: (e) => (e.chain().focus() as any).toggleCodeBlock().run() },
+  { title: "Table", keywords: "table grid", icon: <Table2 className="size-4" />, action: (e) => (e.chain().focus() as any).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+  { title: "Divider", keywords: "hr rule divider", icon: <Minus className="size-4" />, action: (e) => (e.chain().focus() as any).setHorizontalRule().run() },
+  { title: "Callout — info", keywords: "callout note info", icon: <Info className="size-4" />, action: (e) => (e.chain().focus() as any).setCallout("info").run() },
+  { title: "Callout — warning", keywords: "callout warning", icon: <AlertTriangle className="size-4" />, action: (e) => (e.chain().focus() as any).setCallout("warning").run() },
+  { title: "Bold", keywords: "bold", icon: <Bold className="size-4" />, action: (e) => (e.chain().focus() as any).toggleBold().run() },
+  { title: "Italic", keywords: "italic", icon: <Italic className="size-4" />, action: (e) => (e.chain().focus() as any).toggleItalic().run() },
+  { title: "Underline", keywords: "underline", icon: <UnderlineIcon className="size-4" />, action: (e) => (e.chain().focus() as any).toggleUnderline().run() },
+  { title: "Inline code", keywords: "code inline", icon: <Code2 className="size-4" />, action: (e) => (e.chain().focus() as any).toggleCode().run() },
   { title: "Link", keywords: "link url", icon: <Link2 className="size-4" />, action: (e) => {
     const url = window.prompt("Link URL");
-    if (url) e.chain().focus().setLink({ href: url }).run();
+    if (url) (e.chain().focus() as any).setLink({ href: url }).run();
   } },
   { title: "Image", keywords: "image picture", icon: <ImageIcon className="size-4" />, action: (e) => {
     const url = window.prompt("Image URL");
-    if (url) e.chain().focus().setImage({ src: url }).run();
+    if (url) (e.chain().focus() as any).setImage({ src: url }).run();
   } },
-  { title: "Align left", keywords: "align text", icon: <AlignLeft className="size-4" />, action: (e) => e.chain().focus().setTextAlign("left").run() },
+  { title: "Align left", keywords: "align text", icon: <AlignLeft className="size-4" />, action: (e) => (e.chain().focus() as any).setTextAlign("left").run() },
 ];
 
 /**
@@ -63,7 +63,7 @@ const ITEMS: SlashItem[] = [
  * menu; typing narrows it; Enter inserts the selected block. Implemented
  * without the suggestion plugin so it stays simple and predictable.
  */
-export function SlashCommand({ editor }: { editor: Editor }) {
+export function SlashCommand({ editor }: { editor: any }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
