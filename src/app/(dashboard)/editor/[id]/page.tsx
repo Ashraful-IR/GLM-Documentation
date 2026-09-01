@@ -42,7 +42,7 @@ export default async function EditorPage({ params }: { params: Promise<{ id: str
     <EditorWorkspace
       documentId={doc.id}
       initialTitle={doc.title}
-      initialContent={(doc.content ?? { type: "doc", content: [] }) as import("@/types/editor").TiptapDocument}
+      initialContent={doc.content as import("@/types/editor").TiptapDocument}
       serverUpdatedAt={doc.updatedAt}
       status={doc.status}
       currentVersion={doc.currentVersion}
