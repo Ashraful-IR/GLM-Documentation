@@ -46,6 +46,11 @@ export const documentStatusEnum = pgEnum("document_status", [
   "DRAFT",
   "PUBLISHED",
 ]);
+export const importStatusEnum = pgEnum("import_status", [
+  "ANALYZED",
+  "COMMITTED",
+  "FAILED",
+]);
 
 // ---------------------------------------------------------------------------
 // users
@@ -226,6 +231,67 @@ export const auditLogs = documentation.table(
 );
 
 // ---------------------------------------------------------------------------
+// import_jobs & import_job_items
+// ---------------------------------------------------------------------------
+
+export const importJobs = documentation.table(
+  "import_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourceFilename: text("source_filename").notNull(),
+    status: importStatusEnum("status").notNull().default("ANALYZED"),
+    strategyUsed: text("strategy_used").notNull(),
+    rawMarkdown: text("raw_markdown").notNull(),
+    parentNavigationId: uuid("parent_navigation_id").references(() => navigation.id, {
+      onDelete: "set null",
+    }),
+    targetFolderId: uuid("target_folder_id").references(() => navigation.id, {
+      onDelete: "set null",
+    }),
+    totalSections: integer("total_sections").notNull().default(0),
+    importedSections: integer("imported_sections").notNull().default(0),
+    autoPublished: boolean("auto_published").notNull().default(true),
+    warnings: jsonb("warnings").$type<string[]>().default([]),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+    committedAt: timestamp("committed_at", { withTimezone: true, mode: "date" }),
+  },
+  (table) => [
+    index("import_jobs_created_by_idx").on(table.createdBy),
+    index("import_jobs_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const importJobItems = documentation.table(
+  "import_job_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    importJobId: uuid("import_job_id")
+      .notNull()
+      .references(() => importJobs.id, { onDelete: "cascade" }),
+    documentId: uuid("document_id").references(() => documents.id, {
+      onDelete: "set null",
+    }),
+    navigationId: uuid("navigation_id").references(() => navigation.id, {
+      onDelete: "set null",
+    }),
+    sectionTitle: text("section_title").notNull(),
+    sectionSlug: text("section_slug").notNull(),
+    sectionHash: text("section_hash").notNull(),
+    orderIndex: integer("order_index").notNull(),
+    status: text("status").notNull().default("SUCCESS"),
+  },
+  (table) => [
+    index("import_job_items_job_id_idx").on(table.importJobId),
+    index("import_job_items_hash_idx").on(table.sectionHash),
+  ]
+);
+
+// ---------------------------------------------------------------------------
 // Shared types
 // ---------------------------------------------------------------------------
 
@@ -251,3 +317,7 @@ export type NewDocument = typeof documents.$inferInsert;
 export type DocumentVersionRow = typeof documentVersions.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
 export type AuditLogRow = typeof auditLogs.$inferSelect;
+export type ImportJobRow = typeof importJobs.$inferSelect;
+export type NewImportJob = typeof importJobs.$inferInsert;
+export type ImportJobItemRow = typeof importJobItems.$inferSelect;
+export type NewImportJobItem = typeof importJobItems.$inferInsert;

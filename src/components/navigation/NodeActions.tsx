@@ -10,6 +10,7 @@ import {
   Pencil,
   Rocket,
   Trash2,
+  UploadCloud,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -30,6 +31,7 @@ export interface NodeActionCallbacks {
   onHide: (node: NavigationNode) => void;
   onDuplicate: (node: NavigationNode) => void;
   onPublish: (node: NavigationNode) => void;
+  onImport: (node: NavigationNode) => void;
 }
 
 interface NodeActionsProps {
@@ -50,7 +52,7 @@ export function NodeActions({ node, slugPath, canEdit, onAction }: NodeActionsPr
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 opacity-0 transition-opacity group-hover/node:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 sm:size-6"
+          className="mt-0.5 size-8 shrink-0 opacity-0 transition-opacity group-hover/node:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 sm:size-6"
           aria-label={`Actions for ${node.title}`}
           // Stop the click from bubbling to the sidebar row's navigate/toggle handler.
           onPointerDown={(e) => e.stopPropagation()}
@@ -84,6 +86,9 @@ export function NodeActions({ node, slugPath, canEdit, onAction }: NodeActionsPr
             <DropdownMenuItem onClick={() => onAction.onAddChild(node)}>
               {isFolder ? <FolderPlus className="size-3.5" /> : <FilePlus2 className="size-3.5" />}
               Add child
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction.onImport(node)}>
+              <UploadCloud className="size-3.5" /> Import Markdown
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAction.onRename(node)}>
               <Pencil className="size-3.5" /> Rename

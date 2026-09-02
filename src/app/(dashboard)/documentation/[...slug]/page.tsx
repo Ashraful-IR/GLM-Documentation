@@ -177,118 +177,118 @@ export default async function DocumentationView({ params }: { params: Promise<{ 
             panel stays equal at every viewport width. */}
         <div className="min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[820px] px-2 sm:px-0">
-          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-            <Link href="/documentation" className="flex items-center gap-1 transition-colors hover:text-foreground">
-              <Home className="size-3.5" /> Home
-            </Link>
-            {crumbs.map((c) => (
-              <span key={c.id} className="flex items-center gap-1.5">
-                <ChevronRight className="size-3.5" />
-                <Link
-                  href={`/documentation/${paths.get(c.id) ?? c.slug}`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  {c.title}
-                </Link>
-              </span>
-            ))}
-            <ChevronRight className="size-3.5" />
-            <span className="font-medium text-foreground">{node.title}</span>
-          </nav>
+            <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+              <Link href="/documentation" className="flex items-center gap-1 transition-colors hover:text-foreground">
+                <Home className="size-3.5" /> Home
+              </Link>
+              {crumbs.map((c) => (
+                <span key={c.id} className="flex items-center gap-1.5">
+                  <ChevronRight className="size-3.5" />
+                  <Link
+                    href={`/documentation/${paths.get(c.id) ?? c.slug}`}
+                    className="transition-colors hover:text-foreground"
+                  >
+                    {c.title}
+                  </Link>
+                </span>
+              ))}
+              <ChevronRight className="size-3.5" />
+              <span className="font-medium text-foreground">{node.title}</span>
+            </nav>
 
-          <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{isPublished ? (doc.publishedTitle ?? doc.title) : node.title}</h1>
+            <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{node.title}</h1>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            {isPublished ? (
-              <>
-                <span>Last updated: {new Date(doc.publishedAt ?? doc.updatedAt).toLocaleDateString()}</span>
-                {authorName && <span>By {authorName}</span>}
-              </>
-            ) : (
-              <span>Draft — not published yet</span>
-            )}
-            {canEdit && (
-              <Button asChild size="sm" variant="outline" className="ml-auto gap-1.5">
-                <Link href={`/editor/${doc.id}`}>
-                  <Pencil className="size-3.5" /> Edit
-                </Link>
-              </Button>
-            )}
-          </div>
-
-          <div className="mt-8">
-            {isPublished ? (
-              <LazyDocumentViewer variant="reader" content={content} headings={tocItems} />
-            ) : (
-              <div className="rounded-lg border border-dashed px-6 py-12 text-center text-sm text-muted-foreground">
-                This page hasn&apos;t been published yet. Its content is only visible in the editor until it is published.
-              </div>
-            )}
-          </div>
-
-          {/* Child pages — separate documents/folders attached under this one */}
-          {childPages.length > 0 && (
-            <section className="mt-8 sm:mt-12">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Child pages</h2>
-              <ul className="mt-3 grid gap-2 grid-cols-1 sm:grid-cols-2">
-                {childPages.map((child) => {
-                  const Icon = child.type === "FOLDER" ? Folder : child.type === "LINK" ? Link2 : FileText;
-                  const href =
-                    child.type === "LINK" ? child.linkUrl ?? "#" : `/documentation/${paths.get(child.id) ?? child.slug}`;
-                  return (
-                    <li key={child.id}>
-                      <Link
-                        href={href}
-                        target={child.type === "LINK" ? "_blank" : undefined}
-                        className="group flex items-start gap-2.5 rounded-lg border p-3 transition-colors hover:bg-accent/50"
-                      >
-                        <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-medium">{child.title}</span>
-                          {child.description && (
-                            <span className="mt-0.5 line-clamp-1 block text-xs text-muted-foreground">
-                              {child.description}
-                            </span>
-                          )}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          )}
-
-          {(prev || next) && (
-            <div className="mt-8 flex flex-col gap-3 border-t pt-6 sm:mt-12 sm:flex-row sm:items-stretch sm:justify-between sm:gap-4">
-              {prev ? (
-                <Link
-                  href={`/documentation/${paths.get(prev.id) ?? prev.slug}`}
-                  className="group flex max-w-full flex-col gap-1 rounded-lg border p-3 transition-colors hover:bg-accent/50 sm:max-w-[45%] sm:p-4"
-                >
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <ArrowLeft className="size-3" /> Previous
-                  </span>
-                  <span className="truncate text-sm font-medium group-hover:text-foreground">{prev.title}</span>
-                </Link>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              {isPublished ? (
+                <>
+                  <span>Last updated: {new Date(doc.publishedAt ?? doc.updatedAt).toLocaleDateString()}</span>
+                  {authorName && <span>By {authorName}</span>}
+                </>
               ) : (
-                <span className="flex-1" />
+                <span>Draft — not published yet</span>
               )}
-              {next ? (
-                <Link
-                  href={`/documentation/${paths.get(next.id) ?? next.slug}`}
-                  className="group flex max-w-full flex-col items-end gap-1 rounded-lg border p-3 text-right transition-colors hover:bg-accent/50 sm:ml-auto sm:max-w-[45%] sm:p-4"
-                >
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    Next <ArrowRight className="size-3" />
-                  </span>
-                  <span className="truncate text-sm font-medium group-hover:text-foreground">{next.title}</span>
-                </Link>
-              ) : (
-                <span className="flex-1" />
+              {canEdit && (
+                <Button asChild size="sm" variant="outline" className="ml-auto gap-1.5">
+                  <Link href={`/editor/${doc.id}`}>
+                    <Pencil className="size-3.5" /> Edit
+                  </Link>
+                </Button>
               )}
             </div>
-          )}
+
+            <div className="mt-8">
+              {isPublished ? (
+                <LazyDocumentViewer variant="reader" content={content} headings={tocItems} />
+              ) : (
+                <div className="rounded-lg border border-dashed px-6 py-12 text-center text-sm text-muted-foreground">
+                  This page hasn&apos;t been published yet. Its content is only visible in the editor until it is published.
+                </div>
+              )}
+            </div>
+
+            {/* Child pages — separate documents/folders attached under this one */}
+            {childPages.length > 0 && (
+              <section className="mt-8 sm:mt-12">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Child pages</h2>
+                <ul className="mt-3 grid gap-2 grid-cols-1 sm:grid-cols-2">
+                  {childPages.map((child) => {
+                    const Icon = child.type === "FOLDER" ? Folder : child.type === "LINK" ? Link2 : FileText;
+                    const href =
+                      child.type === "LINK" ? child.linkUrl ?? "#" : `/documentation/${paths.get(child.id) ?? child.slug}`;
+                    return (
+                      <li key={child.id}>
+                        <Link
+                          href={href}
+                          target={child.type === "LINK" ? "_blank" : undefined}
+                          className="group flex items-start gap-2.5 rounded-lg border p-3 transition-colors hover:bg-accent/50"
+                        >
+                          <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium">{child.title}</span>
+                            {child.description && (
+                              <span className="mt-0.5 line-clamp-1 block text-xs text-muted-foreground">
+                                {child.description}
+                              </span>
+                            )}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            {(prev || next) && (
+              <div className="mt-8 flex flex-col gap-3 border-t pt-6 sm:mt-12 sm:flex-row sm:items-stretch sm:justify-between sm:gap-4">
+                {prev ? (
+                  <Link
+                    href={`/documentation/${paths.get(prev.id) ?? prev.slug}`}
+                    className="group flex max-w-full flex-col gap-1 rounded-lg border p-3 transition-colors hover:bg-accent/50 sm:max-w-[45%] sm:p-4"
+                  >
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <ArrowLeft className="size-3" /> Previous
+                    </span>
+                    <span className="truncate text-sm font-medium group-hover:text-foreground">{prev.title}</span>
+                  </Link>
+                ) : (
+                  <span className="flex-1" />
+                )}
+                {next ? (
+                  <Link
+                    href={`/documentation/${paths.get(next.id) ?? next.slug}`}
+                    className="group flex max-w-full flex-col items-end gap-1 rounded-lg border p-3 text-right transition-colors hover:bg-accent/50 sm:ml-auto sm:max-w-[45%] sm:p-4"
+                  >
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      Next <ArrowRight className="size-3" />
+                    </span>
+                    <span className="truncate text-sm font-medium group-hover:text-foreground">{next.title}</span>
+                  </Link>
+                ) : (
+                  <span className="flex-1" />
+                )}
+              </div>
+            )}
           </div>
         </div>
 

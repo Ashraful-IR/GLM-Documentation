@@ -34,6 +34,7 @@ import {
   PublishDialog,
   RenameDialog,
 } from "./dialogs";
+import { ImportDialog } from "./ImportDialog";
 
 const CAN_EDIT: Record<UserRole, boolean> = {
   ADMIN: true,
@@ -47,6 +48,7 @@ export interface SidebarMutations {
   moveNode: (id: string, target: { parentId: string | null; prevId?: string | null; nextId?: string | null }) => Promise<void>;
   deleteNode: (id: string, permanent?: boolean) => Promise<void>;
   duplicateNode: (id: string) => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 interface SidebarProps {
@@ -134,6 +136,7 @@ export function Sidebar({ tree, loading, role, mutations }: SidebarProps) {
 
   // Dialog state
   const [newParent, setNewParent] = useState<NavigationNode | null | "root">(null);
+  const [importTarget, setImportTarget] = useState<NavigationNode | null | "root">(null);
   const [renameNode, setRenameNode] = useState<NavigationNode | null>(null);
   const [deleteNode, setDeleteNode] = useState<NavigationNode | null>(null);
   const [hideNode, setHideNode] = useState<NavigationNode | null>(null);
@@ -172,6 +175,7 @@ export function Sidebar({ tree, loading, role, mutations }: SidebarProps) {
       }
     },
     onPublish: (node) => setPublishNode(node),
+    onImport: (node) => setImportTarget(node),
   };
 
   /**
@@ -361,6 +365,18 @@ export function Sidebar({ tree, loading, role, mutations }: SidebarProps) {
           }
         }}
       />
+      <ImportDialog
+        open={importTarget !== null}
+        onOpenChange={(o) => !o && setImportTarget(null)}
+        targetNode={importTarget}
+        onSuccess={async (result) => {
+          await mutations.refresh();
+          if (result?.folderId) {
+            setExpanded((prev) => ({ ...prev, [result.folderId!]: true }));
+          }
+          router.refresh();
+        }}
+      />
     </div>
   );
 }
@@ -421,7 +437,7 @@ function SortableRow({
             onNavigate();
           }
         }}
-        className={`group/node relative flex cursor-pointer select-none items-center gap-1 rounded-md px-1.5 py-1 mt-4 text-sm ${
+        className={`group/node relative flex cursor-pointer select-none items-start gap-1.5 rounded-md px-1.5 py-1.5 text-xs ${
           isActive ? "opacity-40" : ""
         } ${isOver ? "ring-1 ring-inset ring-ring" : ""} ${
           isCurrentPath ? "bg-accent font-medium text-accent-foreground" : "text-foreground/80 hover:bg-accent/60"
@@ -430,13 +446,13 @@ function SortableRow({
         {isCurrentPath && (
           <span className="absolute left-0 top-1/2 h-3.5 w-[3px] -translate-y-1/2 rounded-r-full bg-gp-green" />
         )}
-        <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1 truncate">{item.title}</span>
+        <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 break-words whitespace-normal leading-snug">{item.title}</span>
         {item.hasChildren && (
           // The chevron is part of the row: its clicks bubble to the row handler
           // so the whole row responds identically (navigate + expand / toggle).
           <button
-            className="ml-2 flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-accent"
+            className="mt-0.5 ml-1 flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-accent"
             aria-label={expanded ? "Collapse" : "Expand"}
           >
             <ChevronRight className={`size-3 transition-transform duration-150 ${expanded ? "rotate-90" : ""}`} />
