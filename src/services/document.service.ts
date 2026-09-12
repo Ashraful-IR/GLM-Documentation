@@ -3,7 +3,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { documentVersions, documents, navigation } from "@/db/schema";
 import { ApiError } from "@/lib/http";
-import { extractTextFromDoc } from "@/lib/content/text";
+import { extractTextFromDoc, limitTextForIndex } from "@/lib/content/text";
 import { requirePermission, PERMISSIONS, type Actor } from "@/lib/auth/permissions";
 import { logAudit, AUDIT_ACTIONS } from "./audit.service";
 import type { TiptapJson } from "@/db/schema";
@@ -14,6 +14,16 @@ const VERSION_NOT_FOUND = "VERSION_NOT_FOUND";
 const DOC_DELETED = "DOCUMENT_DELETED";
 
 const EMPTY_DOC: TiptapJson = { type: "doc", content: [] };
+
+/**
+ * PostgreSQL full-text search cannot index a tsvector built from more than
+ * 1MB of text (the GIN index expression throws "string is too long for
+ * tsvector" and the whole save fails). Search coverage is therefore capped:
+ * only the first MAX_INDEXABLE_TEXT_BYTES of extracted text feeds the index.
+ * Documents themselves are unlimited — this bounds what is *searchable*, not
+ * what can be stored.
+ */
+const MAX_INDEXABLE_TEXT_BYTES = 500_000; // ~2x headroom under the 1MB tsvector cap
 
 /** Maximum number of version rows kept per document. Older versions beyond
  *  this cap are pruned after each publish/checkpoint to prevent unbounded
@@ -32,7 +42,7 @@ export async function createDocument(
     .values({
       title: input.title,
       content,
-      contentText: extractTextFromDoc(content),
+      contentText: limitTextForIndex(extractTextFromDoc(content), MAX_INDEXABLE_TEXT_BYTES),
       status: input.status ?? "DRAFT",
       createdBy: actor.id,
       updatedBy: actor.id,
@@ -81,7 +91,7 @@ export async function updateDocumentContent(
     .set({
       ...(input.title !== undefined ? { title: input.title } : {}),
       content,
-      contentText: extractTextFromDoc(content),
+      contentText: limitTextForIndex(extractTextFromDoc(content), MAX_INDEXABLE_TEXT_BYTES),
       updatedBy: actor.id,
       updatedAt: new Date(),
     })
@@ -324,7 +334,7 @@ export async function restoreVersion(actor: Actor, documentId: string, versionNu
       .set({
         title: version.title,
         content: version.content,
-        contentText: extractTextFromDoc(version.content),
+        contentText: limitTextForIndex(extractTextFromDoc(version.content), MAX_INDEXABLE_TEXT_BYTES),
         // A restore brings the version back into the working copy; for a
         // published document it also becomes the live snapshot again so the
         // reader page and the "current version" badge stay in sync.

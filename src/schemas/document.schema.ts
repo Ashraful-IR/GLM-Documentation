@@ -13,15 +13,28 @@ const tiptapJson: z.ZodType<TiptapJson> = z.custom<TiptapJson>((v) => {
   );
 });
 
+/**
+ * Upper bound on a document payload (working copy, not raw text). Tiptap JSON
+ * is 3–10x larger than its plain text, so this bounds roughly 4MB of text —
+ * far above anything a real Word import produces, but it fails fast with a
+ * clear 413 instead of a cryptic 500 deep in the DB layer.
+ */
+export const MAX_DOCUMENT_PAYLOAD_BYTES = 16 * 1024 * 1024; // 16MB
+
+const tiptapJsonWithCap = tiptapJson.refine(
+  (v) => !v.content || Buffer.byteLength(JSON.stringify(v), "utf8") <= MAX_DOCUMENT_PAYLOAD_BYTES,
+  { message: "Document is too large (over 16MB of JSON). Split it into multiple pages." },
+);
+
 export const createDocumentSchema = z.object({
   title: z.string().min(1).max(300),
-  content: tiptapJson.optional(),
+  content: tiptapJsonWithCap.optional(),
   status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
 });
 
 export const updateDocumentSchema = z.object({
   title: z.string().min(1).max(300).optional(),
-  content: tiptapJson.optional(),
+  content: tiptapJsonWithCap.optional(),
   // Server always recomputes contentText from content; nothing to pass here.
 });
 

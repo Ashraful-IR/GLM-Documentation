@@ -98,6 +98,10 @@ export const navigation = documentation.table(
     linkUrl: text("link_url"),
     icon: text("icon"),
     description: text("description"),
+    // COLLATE "C" is required: the fractional-index algorithm (§11) computes
+    // midpoints in byte order, so PG ordering must be byte order too. Drizzle
+    // has no collation builder — the actual DDL lives in
+    // drizzle/0004_sort_key_collate_c.sql; keep it in sync if regenerating.
     sortKey: text("sort_key").notNull(),
     isVisible: boolean("is_visible").notNull().default(true),
     deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "date" }),
