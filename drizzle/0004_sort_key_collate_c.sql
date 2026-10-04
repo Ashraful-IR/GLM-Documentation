@@ -1,0 +1,22 @@
+-- ============================================================================
+-- 0004_sort_key_collate_c.sql — Make sort_key ordering byte-exact
+--
+-- The fractional sort_key algorithm (src/lib/utils/fractional-index.ts)
+-- computes midpoints in BYTE order over a fixed 64-char ASCII alphabet, and
+-- every JS-side sort uses `<` (byte order). But this column inherited the
+-- database default collation (en_US.UTF-8), which orders case-insensitively
+-- at the primary level: PG says b2 < C0 < c7 < D6, while the algorithm says
+-- C0 < D6 < ... < b2 < c7. Concretely, computeSortKey() fetched siblings in
+-- PG order, picked (prevKey, nextKey) from that order, and fed them to
+-- between() — which threw "expected a < b" for case-adjacent siblings, or
+-- silently returned keys that violated the PG-visible order.
+--
+-- Keys are always pure ASCII from the 64-char alphabet, so COLLATE "C"
+-- (byte order) is the correct, lossless collation. No data rewrite needed.
+--
+-- ALTER TABLE ... ALTER COLUMN ... TYPE requires a rewrite ONLY when the
+-- type changes; a collation change is metadata-only, but PG still demands
+-- the full syntax. Indexes referencing the column are rebuilt automatically.
+-- ============================================================================
+ALTER TABLE documentation.navigation
+  ALTER COLUMN sort_key TYPE text COLLATE "C";

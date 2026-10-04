@@ -34,6 +34,11 @@ export function handleError(err: unknown): NextResponse {
   if (err instanceof ZodError) {
     const first = err.issues[0];
     const message = first ? `${first.path.join(".")}: ${first.message}` : "Invalid input";
+    // The document payload cap is a size problem, not a validation problem —
+    // surface it as 413 so clients can message it distinctly.
+    if (err.issues.some((i) => i.message.startsWith("Document is too large"))) {
+      return fail("DOCUMENT_TOO_LARGE", message, 413);
+    }
     return fail("VALIDATION_ERROR", message, 422);
   }
   if (err instanceof Error) {

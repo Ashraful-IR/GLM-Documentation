@@ -74,6 +74,14 @@ export function DocumentEditor({
   // Set while a restored draft is being pushed to the server; on success the
   // localStorage draft is removed so the recovery dialog can't re-appear.
   const draftRestoredRef = useRef(false);
+  // Warn about a dropped draft only once per mount (storage full / private mode).
+  const draftQuotaWarnedRef = useRef(false);
+
+  const warnDraftQuotaOnce = () => {
+    if (draftQuotaWarnedRef.current) return;
+    draftQuotaWarnedRef.current = true;
+    toast.warning("Offline draft can't be stored — the document is too large for browser storage. Saving to the server still works.");
+  };
 
   const setStatusSafe = (s: Status) => {
     statusRef.current = s;
@@ -84,12 +92,13 @@ export function DocumentEditor({
     (content: TiptapDocument, t: string) => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
       draftTimerRef.current = setTimeout(() => {
-        setItem<EditorDraft>(draftKey, {
+        const stored = setItem<EditorDraft>(draftKey, {
           content,
           title: t,
           savedServerUpdatedAt: savedUpdatedAtRef.current,
           savedAt: Date.now(),
         });
+        if (!stored) warnDraftQuotaOnce();
       }, DRAFT_DEBOUNCE_MS);
     },
     [draftKey],
@@ -109,12 +118,13 @@ export function DocumentEditor({
     try {
       const updated = await Api.updateDocument(documentId, { title: snapshot.title, content: snapshot.content });
       savedUpdatedAtRef.current = updated.updatedAt;
-      setItem<EditorDraft>(draftKey, {
+      const stored = setItem<EditorDraft>(draftKey, {
         content: snapshot.content,
         title: snapshot.title,
         savedServerUpdatedAt: updated.updatedAt,
         savedAt: Date.now(),
       });
+      if (!stored) warnDraftQuotaOnce();
       setStatusSafe("saved");
       onTitleChange?.(snapshot.title);
       // A restored draft is now safely on the server — drop it so the recovery

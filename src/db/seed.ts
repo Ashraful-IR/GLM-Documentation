@@ -281,7 +281,9 @@ async function main() {
     .limit(1);
   if (navCount.length > 0) {
     console.log("  navigation already seeded — skipping");
-    return;
+    // The shared postgres pool in db/index.ts keeps idle sockets open; without
+    // an explicit exit the process would hang here after main() resolves.
+    process.exit(0);
   }
 
   const admin = await db

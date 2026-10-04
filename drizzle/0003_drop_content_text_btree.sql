@@ -1,0 +1,14 @@
+-- ============================================================================
+-- 0003_drop_content_text_btree.sql — Remove the save-breaking btree index
+--
+-- 0002 added a btree index on documents.content_text. Btree index tuples are
+-- capped at ~8KB (MaxBytesSize 8191 on 8KB pages), so once a document's
+-- extracted text exceeded that, EVERY subsequent save failed with:
+--     "index row requires N bytes, maximum size is 8191"
+-- This is the actual "documents stop saving after a certain word count" bug.
+--
+-- The index also served no query: full-text search uses the GIN tsvector
+-- expression index (documents_search_idx), and no code filters, joins or
+-- sorts on content_text equality.
+-- ============================================================================
+DROP INDEX IF EXISTS documentation.documents_content_text_idx;

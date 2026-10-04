@@ -27,12 +27,21 @@ export function getItem<T>(key: string): T | null {
   }
 }
 
-export function setItem<T>(key: string, value: T): void {
-  if (!isClient()) return;
+/**
+ * Returns false when the write failed (storage full or unavailable). Callers
+ * that must react to a dropped draft (e.g. the editor) use this to warn once
+ * instead of losing draft state silently.
+ */
+export function setItem<T>(key: string, value: T): boolean {
+  if (!isClient()) return false;
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // storage full / private mode — non-fatal
+    return true;
+  } catch (err) {
+    // QuotaExceededError / privacy mode — surface instead of swallowing so
+    // very large drafts failing to persist are at least diagnosable.
+    console.warn(`[storage] could not persist "${key}" (quota exceeded or unavailable)`, err);
+    return false;
   }
 }
 
