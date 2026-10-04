@@ -31,7 +31,7 @@ export default async function DocumentationLanding() {
   const roots = tree.filter((n) => n.parentId === null);
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-8 sm:py-14">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-14">
       <div className="mb-8 flex items-center gap-3">
         <BrandMark size="lg" />
         <div>
@@ -50,7 +50,7 @@ export default async function DocumentationLanding() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {roots.map((node) => {
             const href =
               node.type === "LINK" ? node.linkUrl ?? "#" : `/documentation/${node.slug}`;
