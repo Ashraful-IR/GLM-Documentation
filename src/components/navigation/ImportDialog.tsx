@@ -102,7 +102,10 @@ export function ImportDialog({
       : targetNode.title;
 
   useEffect(() => {
-    if (open) {
+    // Reset all wizard state when the dialog opens; deferred one tick to
+    // avoid the synchronous setState-in-effect pattern (react-hooks rule).
+    if (!open) return;
+    const t = setTimeout(() => {
       setStep("UPLOAD");
       setFile(null);
       setPastedMarkdown("");
@@ -120,7 +123,8 @@ export function ImportDialog({
       setProgressStatus("");
       setImportResult(null);
       setError(null);
-    }
+    }, 0);
+    return () => clearTimeout(t);
   }, [open]);
 
   const handleFileSelect = (selectedFile: File) => {

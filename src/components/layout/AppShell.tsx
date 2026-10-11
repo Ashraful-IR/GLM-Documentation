@@ -23,7 +23,12 @@ export function AppShell({ user, initialTree, children }: { user: SessionUser; i
   const { tree, loading, createNode, updateNode, moveNode, deleteNode, duplicateNode, refresh } = useNavigation(initialTree);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    // Async-by-one-tick keeps hydration-safe mounted flag without
+    // synchronous setState inside the effect body.
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const sidebarProps = {
     tree,

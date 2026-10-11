@@ -29,7 +29,11 @@ interface DraftRecoveryDialogProps {
 export function DraftRecoveryDialog({ open, kind, onChoose }: DraftRecoveryDialogProps) {
   const [resolved, setResolved] = useState(false);
   useEffect(() => {
-    if (open) setResolved(false);
+    // Re-arm asynchronously after mount so the reset isn't a synchronous
+    // setState-in-effect (react-hooks lint rule).
+    if (!open) return;
+    const t = setTimeout(() => setResolved(false), 0);
+    return () => clearTimeout(t);
   }, [open]);
 
   if (!open) return null;

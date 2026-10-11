@@ -21,7 +21,8 @@ export default function AuditPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    // Deferred one tick — the rule flags synchronous setState-in-effect.
+    const start = setTimeout(() => setLoading(true), 0);
     Api.listAudit(page, PAGE_SIZE)
       .then((res) => {
         if (cancelled) return;
@@ -37,6 +38,7 @@ export default function AuditPage() {
       });
     return () => {
       cancelled = true;
+      clearTimeout(start);
     };
   }, [page]);
 

@@ -63,7 +63,7 @@ for (let t = 0; t < 2000; t++) {
     const pos = Math.floor(Math.random() * (keys.length + 1));
     const a = pos === 0 ? null : keys[pos - 1];
     const b = pos === keys.length ? null : keys[pos];
-    let k = between(a, b);
+    const k = between(a, b);
     if (k.length > MAX_KEY_LENGTH) {
       // rebalance to keep keys short
       const list = [...keys.slice(0, pos), k, ...keys.slice(pos)];

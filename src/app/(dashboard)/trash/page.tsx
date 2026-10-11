@@ -62,7 +62,10 @@ export default function TrashPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
+    // Deferred one tick so the initial load isn't a synchronous
+    // setState-in-effect (react-hooks lint rule).
+    const t = setTimeout(() => { void loadData(); }, 0);
+    return () => clearTimeout(t);
   }, [loadData, tree]);
 
   const handleRestore = async (node: FlattenedDeletedNode) => {

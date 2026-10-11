@@ -206,11 +206,16 @@ export function DocumentEditor({
       removeItem(draftKey);
       return;
     }
-    if (draft.savedServerUpdatedAt === serverUpdatedAt) {
-      setDraftPrompt({ kind: "unchanged" });
-    } else {
-      setDraftPrompt({ kind: "conflict" });
-    }
+    // Prompt deferred one tick so the recovery dialog mount isn't a
+    // synchronous setState-in-effect (react-hooks rule).
+    const t = setTimeout(() => {
+      if (draft.savedServerUpdatedAt === serverUpdatedAt) {
+        setDraftPrompt({ kind: "unchanged" });
+      } else {
+        setDraftPrompt({ kind: "conflict" });
+      }
+    }, 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 

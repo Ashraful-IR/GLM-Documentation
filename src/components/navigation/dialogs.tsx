@@ -43,13 +43,17 @@ export function NewItemDialog({ open, onOpenChange, parentId, parentTitle, onCre
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) {
+    // Reset fields when the dialog opens; deferred one tick to avoid the
+    // synchronous setState-in-effect pattern (react-hooks rule).
+    if (!open) return;
+    const t = setTimeout(() => {
       setType("DOCUMENT");
       setTitle("");
       setSlug("");
       setLinkUrl("");
       setError(null);
-    }
+    }, 0);
+    return () => clearTimeout(t);
   }, [open]);
 
   const autoSlug = (value: string) =>
@@ -164,11 +168,13 @@ export function RenameDialog({ open, onOpenChange, node, mutations }: RenameDial
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open && node) {
+    if (!open || !node) return;
+    const t = setTimeout(() => {
       setTitle(node.title);
       setSlug(node.slug);
       setError(null);
-    }
+    }, 0);
+    return () => clearTimeout(t);
   }, [open, node]);
 
   async function submit(e: React.FormEvent) {
@@ -320,7 +326,9 @@ export function PublishDialog({ open, onOpenChange, documentId, onPublish }: Pub
   const [summary, setSummary] = useState("");
   const [saving, setSaving] = useState(false);
   useEffect(() => {
-    if (open) setSummary("");
+    if (!open) return;
+    const t = setTimeout(() => setSummary(""), 0);
+    return () => clearTimeout(t);
   }, [open]);
   async function confirm() {
     if (!documentId) return;

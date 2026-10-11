@@ -46,7 +46,7 @@ function MenuButton({
   );
 }
 
-export function EditorBubbleMenu({ editor }: { editor: any }) {
+export function EditorBubbleMenu({ editor }: { editor: Editor }) {
   return (
     <TiptapBubbleMenu editor={editor} updateDelay={100}>
       <TooltipProvider delayDuration={200}>

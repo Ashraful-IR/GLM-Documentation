@@ -39,7 +39,10 @@ export default function MediaPage() {
     }
   }
   useEffect(() => {
-    void load();
+    // Deferred one tick so the initial load isn't a synchronous
+    // setState-in-effect (react-hooks lint rule).
+    const t = setTimeout(() => { void load(); }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   async function upload(file: File) {

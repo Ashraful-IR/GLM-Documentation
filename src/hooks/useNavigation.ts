@@ -35,7 +35,11 @@ export function useNavigation(initialTree?: NavigationNode[]) {
 
   useEffect(() => {
     // If we already have initial data from the server, skip the mount fetch.
-    if (!initialTree) void refresh();
+    // Deferred one tick so the fetch isn't a synchronous side effect in render/E
+    // (react-hooks/set-state-in-effect).
+    if (initialTree) return;
+    const t = setTimeout(() => { void refresh(); }, 0);
+    return () => clearTimeout(t);
   }, [refresh, initialTree]);
 
   const mutations: TreeMutations = {

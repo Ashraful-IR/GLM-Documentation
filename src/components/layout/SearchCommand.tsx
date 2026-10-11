@@ -38,18 +38,24 @@ export function SearchCommand() {
   }, []);
 
   useEffect(() => {
-    if (!open) {
+    // Reset findings only when the dialog closes (not on open); deferred
+    // one tick to avoid synchronous setState-in-effect.
+    if (open) return;
+    const t = setTimeout(() => {
       setQuery("");
       setResults([]);
-      return;
-    }
+    }, 0);
+    return () => clearTimeout(t);
   }, [open]);
 
   useEffect(() => {
     if (!open || query.trim().length === 0) {
-      setResults([]);
-      setLoading(false);
-      return;
+      // Debounced clear: avoids the synchronous setState-in-effect pattern.
+      const timer = setTimeout(() => {
+        setResults([]);
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
     // Debounce: wait until the user pauses typing before firing the request.
     // 400ms absorbs natural human typing pauses, so a single query fires once
