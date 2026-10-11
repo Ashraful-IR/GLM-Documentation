@@ -10,6 +10,16 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+      react-stack:
+        patterns:
+          - "react"
+          - "react-dom"
+    ignore:
+      # typescript-eslint does not yet support TypeScript 7; a TS major bump
+      # hard-crashes `npm run lint` (ci.yml lint gate). Let majors wait.
+      - dependency-name: "typescript"
+        update-types:
+          - version-update:semver-major
 
   # GitHub Actions used in .github/workflows/*
   - package-ecosystem: github-actions
