@@ -83,34 +83,43 @@ export default async function DocumentationView({ params }: { params: Promise<{ 
     const folderNode = findInTree(tree, node.id);
     const children = folderNode?.children ?? [];
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-8 sm:py-14">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-14">
         <div className="mb-6 flex items-center gap-2">
           <Folder className="size-4 text-muted-foreground" />
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{node.title}</h1>
         </div>
-        <ul className="space-y-2">
-          {children.map((child) => (
-            <li key={child.id}>
-              <Link
-                href={
-                  child.type === "DOCUMENT"
-                    ? `/documentation/${slugs.join("/")}/${child.slug}`
-                    : child.linkUrl ?? "#"
-                }
-                target={child.type === "LINK" ? "_blank" : undefined}
-                className="flex items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors hover:bg-accent/50"
-              >
-                {child.type === "DOCUMENT" ? (
-                  <FileText className="size-3.5 text-muted-foreground" />
-                ) : (
-                  <Link2 className="size-3.5 text-muted-foreground" />
-                )}
-                <span className="font-medium">{child.title}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{child.children.length} item(s)</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {children.length === 0 ? (
+          <div className="rounded-lg border border-dashed px-6 py-12 text-center text-sm text-muted-foreground">
+            This folder is empty. Use the <span className="font-medium text-foreground">+</span> button in the
+            sidebar to add a page.
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {children.map((child) => (
+              <li key={child.id}>
+                <Link
+                  href={
+                    child.type === "DOCUMENT"
+                      ? `/documentation/${slugs.join("/")}/${child.slug}`
+                      : child.linkUrl ?? "#"
+                  }
+                  target={child.type === "LINK" ? "_blank" : undefined}
+                  className="group flex h-full flex-col gap-2 rounded-lg border p-4 text-sm transition-colors hover:bg-accent/50"
+                >
+                  {child.type === "DOCUMENT" ? (
+                    <FileText className="size-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <Link2 className="size-4 shrink-0 text-muted-foreground" />
+                  )}
+                  <span className="line-clamp-2 font-medium">{child.title}</span>
+                  {child.children.length > 0 && (
+                    <span className="mt-auto text-xs text-muted-foreground">{child.children.length} item(s)</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     );
   }
