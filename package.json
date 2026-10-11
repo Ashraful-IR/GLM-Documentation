@@ -73,18 +73,18 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcryptjs": "^3.0.0",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^20.19.43",
+    "@types/node": "^26.6.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "env-cmd": "^11.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.1",
+    "eslint": "^10",
+    "eslint-config-next": "16.4.0",
     "playwright-core": "^1.62.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "overrides": {
     "proxy-addr": "^2.0.8"
