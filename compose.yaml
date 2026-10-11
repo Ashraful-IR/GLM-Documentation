@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      # keep server-only variables out of the browser bundle
+      # (do NOT put secrets in NEXT_PUBLIC_* vars)
+    restart: unless-stopped

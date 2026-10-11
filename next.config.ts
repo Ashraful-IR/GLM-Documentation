@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
     // document payload cap (16MB) so validation, not buffering, fails first.
     proxyClientMaxBodySize: "50mb",
   },
+  output: "standalone",
 };
 
 export default nextConfig;
