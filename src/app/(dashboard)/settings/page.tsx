@@ -24,7 +24,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Your display name and role.</CardDescription>
+          <CardDescription>Your display name, role, team and designation.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -44,6 +44,17 @@ export default function SettingsPage() {
             <Label>Role</Label>
             <Input value={user.role} disabled className="uppercase" />
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Team</Label>
+              <Input value={user.teamName ?? "Not set"} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>Designation</Label>
+              <Input value={user.designationName ?? "Not set"} disabled />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Team and designation are managed by an administrator.</p>
           <Button
             disabled={saving || !name}
             onClick={async () => {

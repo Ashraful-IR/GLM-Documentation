@@ -90,7 +90,37 @@ export interface SessionUser {
   name: string;
   role: UserRole;
   avatarUrl: string | null;
+  teamName?: string | null;
+  designationName?: string | null;
 }
+
+export type UserStatus = "PENDING" | "ACTIVE" | "REJECTED";
+
+/** Row in the admin Users list. */
+export interface AdminUserRow {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  status: UserStatus;
+  avatarUrl: string | null;
+  teamId: string | null;
+  teamName: string | null;
+  designationId: string | null;
+  designationName: string | null;
+  approvedByName: string | null;
+  approvedAt: string | null;
+  createdAt: string;
+}
+
+/** A team or designation. `userCount` is only present on the admin list. */
+export interface LookupItem {
+  id: string;
+  name: string;
+  userCount?: number;
+}
+
+export type LookupKind = "team" | "designation";
 
 export type ApiEnvelope<T> =
   | { success: true; data: T }

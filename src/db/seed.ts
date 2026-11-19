@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 import { db } from "./index";
-import { documents, navigation, users } from "./schema";
+import { designations, documents, navigation, teams, users } from "./schema";
 import { createNavigationTree } from "../services/navigation.service";
 import { extractTextFromDoc } from "../lib/content/text";
 import type { TiptapJson } from "./schema";
@@ -273,6 +273,23 @@ async function main() {
     console.log(`  created admin user (${admin.id})`);
   } else {
     console.log("  users already seeded — skipping");
+  }
+
+  // Starter lookup lists so registration works out of the box. Admins manage
+  // them afterwards under Users → Teams & designations.
+  const teamCount = await db.select({ id: teams.id }).from(teams).limit(1);
+  if (teamCount.length === 0) {
+    await db.insert(teams).values(
+      ["Engineering", "Product", "Design", "Quality Assurance", "Operations"].map((name) => ({ name })),
+    );
+    console.log("  created starter teams");
+  }
+  const designationCount = await db.select({ id: designations.id }).from(designations).limit(1);
+  if (designationCount.length === 0) {
+    await db.insert(designations).values(
+      ["Intern", "Junior Engineer", "Software Engineer", "Senior Engineer", "Team Lead", "Manager"].map((name) => ({ name })),
+    );
+    console.log("  created starter designations");
   }
 
   const navCount = await db

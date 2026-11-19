@@ -1,18 +1,20 @@
 import { ok, handleError } from "@/lib/http";
-import { getActorOrNull } from "@/lib/auth/actor";
-import { getUserById } from "@/services/user.service";
+import { getSessionUser } from "@/lib/auth/actor";
+import { getProfileNames } from "@/services/user.service";
 
 export async function GET() {
   try {
-    const actor = await getActorOrNull();
-    if (!actor) return ok(null);
-    const user = await getUserById(actor.id);
+    const user = await getSessionUser();
+    if (!user) return ok(null);
+    const { teamName, designationName } = await getProfileNames(user);
     return ok({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      teamName,
+      designationName,
     });
   } catch (err) {
     return handleError(err);

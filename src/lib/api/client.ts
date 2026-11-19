@@ -41,7 +41,8 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const Api = {
   // auth
-  me: () => api<{ id: string; email: string; name: string; role: "ADMIN" | "EDITOR" | "VIEWER"; avatarUrl: string | null } | null>("/api/auth/me"),
+  me: () => api<import("@/types").SessionUser | null>("/api/auth/me"),
+  authOptions: () => api<{ teams: import("@/types").LookupItem[]; designations: import("@/types").LookupItem[] }>("/api/auth/options"),
   logout: () => api<{ loggedOut: boolean }>("/api/auth/logout", { method: "POST" }),
 
   // navigation
@@ -77,9 +78,25 @@ export const Api = {
     return api<{ id: string; url: string; originalName: string; mimeType: string; size: number; createdAt: string }>("/api/media", { method: "POST", body: form });
   },
   listMedia: () => api<Array<{ id: string; originalName: string; mimeType: string; size: number; url: string; createdAt: string }>>("/api/media"),
-  listUsers: () => api<Array<{ id: string; email: string; name: string; role: "ADMIN" | "EDITOR" | "VIEWER"; avatarUrl: string | null; createdAt: string }>>("/api/users"),
+  listUsers: (status?: import("@/types").UserStatus) =>
+    api<import("@/types").AdminUserRow[]>(`/api/users${status ? `?status=${status}` : ""}`),
+  createUser: (body: { name: string; email: string; password: string; role: import("@/types").UserRole; teamId: string; designationId: string }) =>
+    api<{ id: string }>("/api/users", { method: "POST", body: JSON.stringify(body) }),
   updateUserRole: (id: string, role: "ADMIN" | "EDITOR" | "VIEWER") =>
     api<{ id: string; role: "ADMIN" | "EDITOR" | "VIEWER" }>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify({ role }) }),
+  setUserStatus: (id: string, status: "ACTIVE" | "REJECTED") =>
+    api<{ id: string; status: import("@/types").UserStatus }>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateUserProfile: (id: string, body: { teamId?: string; designationId?: string }) =>
+    api<{ id: string }>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+
+  // teams & designations (admin)
+  listLookup: (kind: import("@/types").LookupKind) => api<import("@/types").LookupItem[]>(`/api/${kind}s`),
+  createLookup: (kind: import("@/types").LookupKind, name: string) =>
+    api<import("@/types").LookupItem>(`/api/${kind}s`, { method: "POST", body: JSON.stringify({ name }) }),
+  renameLookup: (kind: import("@/types").LookupKind, id: string, name: string) =>
+    api<import("@/types").LookupItem>(`/api/${kind}s/${id}`, { method: "PATCH", body: JSON.stringify({ name }) }),
+  deleteLookup: (kind: import("@/types").LookupKind, id: string) =>
+    api<{ deleted: true }>(`/api/${kind}s/${id}`, { method: "DELETE" }),
   listAudit: (page = 1, pageSize = 15) =>
     api<import("@/types").AuditLogPage>(`/api/audit?page=${page}&pageSize=${pageSize}`),
 };

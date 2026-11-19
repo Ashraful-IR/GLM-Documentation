@@ -3,20 +3,16 @@ import { NextRequest } from "next/server";
 import { ok, handleError } from "@/lib/http";
 import { registerSchema } from "@/schemas/user.schema";
 import { register } from "@/services/user.service";
-import { SESSION_COOKIE, SESSION_TTL_SECONDS } from "@/lib/auth/session";
 
+/**
+ * Self-registration. The account is created PENDING and no session cookie is
+ * issued — the user can sign in only after an admin approves the account.
+ */
 export async function POST(req: NextRequest) {
   try {
     const input = registerSchema.parse(await req.json());
-    const { user, token } = await register(input);
-    const res = ok({ user }, { status: 201 });
-    res.cookies.set(SESSION_COOKIE, token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: SESSION_TTL_SECONDS,
-    });
-    return res;
+    const { user } = await register(input);
+    return ok({ user, pending: true }, { status: 201 });
   } catch (err) {
     return handleError(err);
   }

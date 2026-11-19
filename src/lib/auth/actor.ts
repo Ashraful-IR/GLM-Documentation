@@ -8,12 +8,17 @@ import type { Actor } from "./permissions";
  * session points at a user that no longer exists (e.g. DB reset or a deleted
  * account). Pages use this instead of throwing so a stale-but-validly-signed
  * cookie degrades to "please log in" rather than a 500.
+ *
+ * Only ACTIVE accounts have a session: an account that is pending approval or
+ * was rejected (even one holding an older, validly signed cookie) is treated
+ * as logged out.
  */
 export async function getSessionUser() {
   const uid = await getSessionUserId();
   if (!uid) return null;
   try {
-    return await getUserById(uid);
+    const user = await getUserById(uid);
+    return user.status === "ACTIVE" ? user : null;
   } catch (err) {
     if (err instanceof ApiError && err.code === USER_NOT_FOUND) return null;
     throw err;

@@ -41,6 +41,11 @@ export const ltree = customType<{ data: string; driverData: string }>({
 // ---------------------------------------------------------------------------
 
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "EDITOR", "VIEWER"]);
+export const userStatusEnum = pgEnum("user_status", [
+  "PENDING",
+  "ACTIVE",
+  "REJECTED",
+]);
 export const navTypeEnum = pgEnum("nav_type", ["FOLDER", "DOCUMENT", "LINK"]);
 export const documentStatusEnum = pgEnum("document_status", [
   "DRAFT",
@@ -51,6 +56,27 @@ export const importStatusEnum = pgEnum("import_status", [
   "COMMITTED",
   "FAILED",
 ]);
+
+// ---------------------------------------------------------------------------
+// teams / designations — admin-managed lookup lists (unique on lower(name);
+// the expression index lives in drizzle/0005_user_profile_approval.sql)
+// ---------------------------------------------------------------------------
+
+export const teams = documentation.table("teams", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
+});
+
+export const designations = documentation.table("designations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
+});
 
 // ---------------------------------------------------------------------------
 // users
@@ -64,6 +90,16 @@ export const users = documentation.table(
     name: text("name").notNull(),
     passwordHash: text("password_hash").notNull(),
     role: userRoleEnum("role").notNull().default("VIEWER"),
+    status: userStatusEnum("status").notNull().default("ACTIVE"),
+    teamId: uuid("team_id").references(() => teams.id, { onDelete: "restrict" }),
+    designationId: uuid("designation_id").references(() => designations.id, {
+      onDelete: "restrict",
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    approvedBy: uuid("approved_by").references((): any => users.id, {
+      onDelete: "set null",
+    }),
+    approvedAt: timestamp("approved_at", { withTimezone: true, mode: "date" }),
     avatarUrl: text("avatar_url"),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .notNull()
@@ -75,6 +111,9 @@ export const users = documentation.table(
   (table) => [
     uniqueIndex("users_email_unique").on(table.email),
     index("users_role_idx").on(table.role),
+    index("users_status_idx").on(table.status),
+    index("users_team_idx").on(table.teamId),
+    index("users_designation_idx").on(table.designationId),
   ],
 );
 
@@ -313,6 +352,9 @@ export interface TiptapJson {
 }
 
 export type UserRow = typeof users.$inferSelect;
+export type UserStatus = UserRow["status"];
+export type TeamRow = typeof teams.$inferSelect;
+export type DesignationRow = typeof designations.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type NavigationRow = typeof navigation.$inferSelect;
 export type NewNavigation = typeof navigation.$inferInsert;

@@ -116,6 +116,11 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5433/documentation
         run: npx tsx scripts/test-navigation.ts
 
+      - name: User registration / approval integration tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5433/documentation
+        run: npx tsx scripts/test-user-approval.ts
+
       - name: Migration idempotency check (re-run must succeed)
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5433/documentation
