@@ -122,3 +122,24 @@ npx tsx scripts/test-navigation.ts    # tree CRUD / move / cycle / restore
 npx tsx scripts/test-tree-flatten.ts  # drag & drop model
 npx tsx scripts/browser-smoke.ts      # full UI flow in headless Brave/Chromium
 ```
+
+## Deploying to Vercel
+
+The project installs with **npm** (`package-lock.json`, pinned via `packageManager`) on **Node 22**.
+Don't commit a `pnpm-lock.yaml`: Vercel would switch to pnpm and fail when it drifts out of sync.
+
+Vercel runs the `vercel-build` script, which on **production** deploys first runs the database
+deploy step (`src/db/deploy.ts`): apply pending migrations, add the starter teams/designations
+if empty, and create the first admin if it doesn't exist. Preview deploys skip it, so a pull
+request never changes the production database.
+
+Set these in **Vercel → Project → Settings → Environment Variables** (Production):
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | Production Postgres URL (must accept connections from Vercel) |
+| `AUTH_SECRET` | Long random string, e.g. `openssl rand -base64 48` |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | First admin account (password ≥ 8 chars); only used if that email doesn't exist yet |
+| `ADMIN_NAME` | Optional display name |
+
+The build log shows what happened (`[db:deploy] …` lines). For Docker deployments, see `DOCKER.md` §8.

@@ -53,3 +53,7 @@ next-env.d.ts
 
 # deploy bundle (built by `npm run build:deploy`)
 /dist/
+
+# This project uses npm (package-lock.json). A pnpm lockfile makes Vercel
+# install with pnpm and fail when it drifts out of sync.
+pnpm-lock.yaml

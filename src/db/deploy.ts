@@ -17,7 +17,9 @@
  *   ADMIN_EMAIL       optional, with ADMIN_PASSWORD (set both or neither)
  *   ADMIN_PASSWORD    optional, min 8 characters
  *   ADMIN_NAME        optional, default "Administrator"
- *   RUN_MIGRATIONS    "false" skips the whole step (e.g. a DB-less smoke test)
+ *   RUN_MIGRATIONS    "false" skips the whole step (e.g. a DB-less smoke test);
+ *                     "true" also runs it on Vercel preview builds
+ *   VERCEL_ENV        set by Vercel; only "production" migrates by default
  *   MIGRATIONS_DIR    default ./drizzle relative to the working directory
  */
 import { join, resolve } from "node:path";
@@ -90,6 +92,15 @@ async function ensureAdmin(sql: postgres.Sql, admin: { email: string; password: 
 async function main() {
   if (process.env.RUN_MIGRATIONS === "false") {
     log("RUN_MIGRATIONS=false, skipping");
+    return;
+  }
+  // On Vercel this runs in the build (`vercel-build`). Only production builds
+  // touch the database: a preview build of a pull request must never apply
+  // that branch's migrations to the shared database. RUN_MIGRATIONS=true
+  // opts a preview in (e.g. when previews use their own database).
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv && vercelEnv !== "production" && process.env.RUN_MIGRATIONS !== "true") {
+    log(`VERCEL_ENV=${vercelEnv}, skipping (only production deploys migrate)`);
     return;
   }
   const url = process.env.DATABASE_URL;

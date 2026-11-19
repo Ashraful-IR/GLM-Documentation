@@ -2,14 +2,16 @@
   "name": "documentation",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10.9.9",
   "engines": {
-    "node": ">=20.9.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev-test": "env-cmd -f .env.dev next dev",
     "main": "next dev",
     "build": "next build",
     "build:deploy": "esbuild src/db/deploy.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/deploy.mjs --log-level=warning --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
+    "vercel-build": "tsx src/db/deploy.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "db:start": "bash scripts/db.sh start",
