@@ -5,7 +5,11 @@ import { requireActor } from "@/lib/auth/actor";
 import { lookupNameSchema } from "@/schemas/user.schema";
 import { deleteLookup, renameLookup } from "@/services/lookup.service";
 
-export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/teams/[id]">) {
+interface Ctx {
+  params: Promise<{ id: string }>;
+}
+
+export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
     const actor = await requireActor();
     const { id } = await ctx.params;
@@ -16,7 +20,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/teams/[id]
   }
 }
 
-export async function DELETE(_req: NextRequest, ctx: RouteContext<"/api/teams/[id]">) {
+export async function DELETE(_req: NextRequest, ctx: Ctx) {
   try {
     const actor = await requireActor();
     const { id } = await ctx.params;
