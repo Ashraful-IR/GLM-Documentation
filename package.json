@@ -53,7 +53,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "dotenv": "^18.0.6",
+    "dotenv": "^18.0.10",
     "drizzle-orm": "^0.45.2",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.31.0",
