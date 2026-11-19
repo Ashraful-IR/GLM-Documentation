@@ -16,7 +16,7 @@ COPY . .
 # Build-time DB access: all pages/APIs are server-rendered dynamically
 # (verified: no static prerendering touches PostgreSQL), so `next build`
 # needs no DATABASE_URL and no network access to any database.
-RUN npm run build
+RUN npm run build && npm run build:deploy
 
 # --- runtime --------------------------------------------------------------
 FROM node:22-alpine AS runtime
@@ -30,6 +30,13 @@ RUN addgroup -S nextjs && adduser -S nextjs -G nextjs \
 COPY --from=build --chown=nextjs:nextjs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nextjs /app/.next/static ./.next/static
 COPY --from=build --chown=nextjs:nextjs /app/public ./public
+# Deploy step: self-contained bundle (src/db/deploy.ts) + the SQL migrations.
+COPY --from=build --chown=nextjs:nextjs /app/dist/deploy.mjs ./deploy.mjs
+COPY --from=build --chown=nextjs:nextjs /app/drizzle ./drizzle
 USER nextjs
 EXPOSE 3000
-CMD ["node", "server.js"]
+# On every start: migrate, add starter lists if empty, bootstrap the admin from
+# ADMIN_EMAIL / ADMIN_PASSWORD if missing — then start the app. If the deploy
+# step fails the container exits instead of serving on an outdated schema.
+# Set RUN_MIGRATIONS=false to skip it.
+CMD ["sh", "-c", "node deploy.mjs && exec node server.js"]

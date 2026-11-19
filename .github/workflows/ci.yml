@@ -128,8 +128,9 @@ jobs:
 
   # ─────────────────────── Docker image builds cleanly ─────────────────────
   # Runs only when Dockerfile / source change & doesn't push anywhere.
-  # Gate: the image must build; the app must start and serve /login (200)
-  # with placeholder DB creds — proving image runs standalone w/o secrets.
+  # Gate: the image must build; on start it must migrate an empty Postgres,
+  # bootstrap the admin from env, serve /login (200) and accept that admin's
+  # login — and a restart must be a no-op for the DB.
   docker:
     name: Docker image
     runs-on: ubuntu-latest
@@ -146,26 +147,62 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Container boots and serves on port 3000
+      # The image's start command migrates the DB and bootstraps the admin from
+      # ADMIN_EMAIL / ADMIN_PASSWORD before starting the app, so boot it against
+      # a real, empty Postgres and prove that whole path works.
+      - name: Start Postgres for the container
         run: |
-          docker run -d --name smoke \
-            -e DATABASE_URL='postgres://ci-placeholder:ci-placeholder@host.invalid:5432/ci' \
-            -e AUTH_SECRET='ci-smoke-secret' \
-            -p 3000:3000 documentation-web:ci
+          docker network create smoke-net
+          docker run -d --name smoke-db --network smoke-net \
+            -e POSTGRES_PASSWORD=ci-only-password -e POSTGRES_DB=documentation \
+            postgres:18
           for i in $(seq 1 30); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/login || true)
-            [ "$code" = "200" ] && echo "login -> 200 OK" && exit 0
+            docker exec smoke-db pg_isready -U postgres -d documentation && break
             sleep 2
           done
-          echo "App never answered /login with 200"; docker logs smoke; exit 1
+
+      - name: Container migrates, bootstraps admin, and serves on port 3000
+        run: |
+          docker run -d --name smoke --network smoke-net \
+            -e DATABASE_URL='postgres://postgres:ci-only-password@smoke-db:5432/documentation' \
+            -e AUTH_SECRET='ci-smoke-secret' \
+            -e ADMIN_EMAIL='ci-admin@example.com' \
+            -e ADMIN_PASSWORD='ci-admin-password' \
+            -p 3000:3000 documentation-web:ci
+          ok=""
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/login || true)
+            [ "$code" = "200" ] && ok=1 && break
+            sleep 2
+          done
+          docker logs smoke
+          [ -n "$ok" ] || { echo "App never answered /login with 200"; exit 1; }
+          docker logs smoke 2>&1 | grep -q 'created admin ci-admin@example.com'
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' \
+            -d '{"email":"ci-admin@example.com","password":"ci-admin-password"}' \
+            http://localhost:3000/api/auth/login)
+          [ "$code" = "200" ] && echo "bootstrap admin login -> 200 OK" || { echo "admin login -> $code"; exit 1; }
+
+      - name: Restart is idempotent (no re-migration, admin left unchanged)
+        run: |
+          docker restart smoke
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/login || true)
+            [ "$code" = "200" ] && break
+            sleep 2
+          done
+          docker logs smoke 2>&1 | grep -q 'Database is up to date.'
+          docker logs smoke 2>&1 | grep -q 'already exists, left unchanged'
 
       - name: Assert no env/secret files leaked into image
         run: |
           ! docker exec smoke find /app -maxdepth 1 -name '.env*' 2>/dev/null | grep -q .
 
-      - name: Stop smoke container
+      - name: Stop smoke containers
         if: always()
-        run: docker rm -f smoke || true
+        run: |
+          docker rm -f smoke smoke-db || true
+          docker network rm smoke-net || true
 
   # ─────────────────────── Dependency security audit ───────────────────────
   # Calibrated to repo reality (2026-10-11): prod tree carries known

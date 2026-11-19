@@ -37,3 +37,6 @@ local-pg/
 # Type build info
 *.tsbuildinfo
 next-env.d.ts
+
+# deploy bundle is rebuilt inside the image
+dist/

@@ -95,17 +95,43 @@ port in `compose.yaml` (`ports: - "3001:3000"` → app on <http://localhost:3001
 | `port is already allocated` | Port 3000 busy — see section 6. |
 | Build fails in `npm ci` | Delete nothing in package files; ensure `package-lock.json` is committed. The Dockerfile uses `npm ci --ignore-scripts` (no postinstall). |
 
-## 8. Run migrations / seed against the Docker DB
+## 8. Database migrations and the first admin (automatic)
 
-Migrations are **not** run automatically at container startup. Run them explicitly from
-the host (Node.js required) against the same database, after the container is up:
+Every time the container starts, it runs a deploy step **before** the app
+(`node deploy.mjs`, built from `src/db/deploy.ts`):
+
+1. **Migrate:** applies any new `drizzle/*.sql` files. Already-applied ones are skipped,
+   so restarts are no-ops. A database lock makes replicas that boot together wait
+   for each other instead of racing.
+2. **Starter lists:** adds the default teams and designations, but only if those tables
+   are empty.
+3. **First admin:** if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set in `.env.docker` and no
+   account with that email exists, creates it as an active Admin (`ADMIN_NAME` is
+   optional). An existing account is **never modified**, so a password changed in the app
+   survives redeploys. To use a different admin, set a new email.
+
+If any step fails (database unreachable, wrong password, a broken migration, or an
+`ADMIN_*` value that's invalid), the container **exits without starting the app**, and the
+log line starts with `[db:deploy] FAILED:`. With `restart: unless-stopped`, compose keeps
+retrying, so a database that's briefly down at boot recovers on its own.
 
 ```bash
-npm run db:migrate
+docker compose logs web | grep db:deploy   # what the deploy step did
 ```
 
-Note this loads `.env` (not `.env.docker`) via `dotenv` — copy the intended DB URL to
-`.env` or run with the env you want. Seeding works the same way (`npm run db:seed`).
+To skip the step (only if you migrate some other way), set `RUN_MIGRATIONS=false`.
+
+### Running it by hand
+
+From the host (Node.js 22 required), against whatever `DATABASE_URL` is in your environment:
+
+```bash
+npm run db:deploy      # same deploy step: migrate + starter lists + admin bootstrap
+npm run db:migrate     # migrations only
+npm run db:seed        # local demo data (sample docs + admin@local.dev), not for production
+```
+
+These load `.env` (not `.env.docker`) via `dotenv`, so export the intended values first.
 
 ## 9. Continuous Integration (GitHub Actions)
 `.github/workflows/ci.yml` runs on every push/PR to `main` and `dev`, with jobs in **parallel**:
@@ -143,8 +169,9 @@ Add these under **repo → Settings → Secrets and variables → Actions → Ne
 | `DEPLOY_SSH_KEY` | Private SSH key (Ed25519/RSA PEM, no passphrase) whose public half is in the VPS user's `~/.ssh/authorized_keys` |
 | `DEPLOY_PATH` | Absolute path on the VPS holding `compose.yaml` (e.g. `/srv/documentation`) |
 
-Nothing here carries `DATABASE_URL` or `AUTH_SECRET` — those stay in `.env.docker` on the
-VPS itself (git-ignored, provisioned once per §1–2 above).
+Nothing here carries `DATABASE_URL`, `AUTH_SECRET` or the `ADMIN_*` credentials — those stay
+in `.env.docker` on the VPS itself (git-ignored, provisioned once per §1–2 above). The
+container migrates the database on start (§8), so a deploy needs no separate migrate step.
 
 ### What the deploy does
 
@@ -178,7 +205,9 @@ git tag v1.0.0 && git push origin v1.0.0
 
 ## 11. Files involved
 
-- `Dockerfile` — multi-stage build (deps → build → runtime, non-root user, standalone)
+- `Dockerfile` — multi-stage build (deps → build → runtime, non-root user, standalone);
+  the start command runs the deploy step (§8) before the app
+- `src/db/deploy.ts` — the deploy step (bundled to `deploy.mjs` by `npm run build:deploy`)
 - `compose.yaml` — single `web` service, port 3000, `.env.docker`, `unless-stopped`
 - `.dockerignore` — keeps secrets, git history, `node_modules`, `.next` out of the build
 - `.env.docker.example` — committed template (no real values)
