@@ -14,6 +14,11 @@ updates:
         patterns:
           - "react"
           - "react-dom"
+      # Tiptap packages peer-depend on an exact @tiptap/core/@tiptap/pm
+      # version, so they must always be bumped together in one PR.
+      tiptap:
+        patterns:
+          - "@tiptap/*"
     ignore:
       # typescript-eslint does not yet support TypeScript 7; a TS major bump
       # hard-crashes `npm run lint` (ci.yml lint gate). Let majors wait.
@@ -27,3 +32,7 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
